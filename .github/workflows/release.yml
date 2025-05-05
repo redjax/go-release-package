@@ -39,9 +39,12 @@ jobs:
       - name: Run tests
         run: go test ./...
 
-      - name: Create .semrelrc config
+      - name: Create .semrelrc config file
         run: |
-          echo '{ "branch": "release", "ci": "github-actions", "allow-initial-development-versions": true }' > .semrelrc
+          echo '{
+            "branches": ["release"],
+            "allow-initial-development-versions": true
+          }' > .semrelrc
 
       - name: Run semantic release
         id: semrel
