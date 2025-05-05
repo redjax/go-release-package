@@ -4,10 +4,17 @@ on:
   push:
     branches:
       - release
+  workflow_dispatch:
 
 jobs:
   release:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
     steps:
       - uses: actions/checkout@v4
 
@@ -32,42 +39,42 @@ jobs:
       - name: Run tests
         run: go test ./...
 
-      - name: Create .semrelrc config file
+      - name: Create .semrelrc config
         run: |
-          echo '{ "branch": "release", "allow-initial-development-versions": true }' > .semrelrc
+          echo '{ "branch": "release", "ci": "github-actions", "allow-initial-development-versions": true }' > .semrelrc
 
-      - name: Debug .semrelrc file
-        run: |
-          cat .semrelrc
-
-      - name: Run go-semantic-release
+      - name: Run semantic release
+        id: semrel
         uses: go-semantic-release/action@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build for multiple platforms
+      - name: Show version
+        if: steps.semrel.outputs.new-release-published == 'true'
         run: |
+          echo "New release version: ${{ steps.semrel.outputs.new-release-version }}"
+
+      - name: Build multi-platform binaries
+        if: steps.semrel.outputs.new-release-published == 'true'
+        run: |
+          version=${{ steps.semrel.outputs.new-release-version }}
           mkdir -p dist
-          platforms=(
-            "linux/amd64"
-            "linux/arm64"
-            "darwin/amd64"
-            "darwin/arm64"
-            "windows/amd64"
-          )
+          platforms=(linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64)
           for platform in "${platforms[@]}"; do
-            os=${platform%/*}
-            arch=${platform#*/}
-            output="dist/${os}-${arch}/yourprogram"
-            if [ "$os" = "windows" ]; then
-              output="${output}.exe"
-            fi
-            env GOOS=$os GOARCH=$arch CGO_ENABLED=0 go build -o $output ./...
+            os="${platform%/*}"
+            arch="${platform#*/}"
+            out_dir="dist/${os}-${arch}"
+            mkdir -p "$out_dir"
+            output="${out_dir}/yourprogram"
+            [ "$os" = "windows" ] && output="${output}.exe"
+            GOOS=$os GOARCH=$arch CGO_ENABLED=0 go build -o "$output" ./...
           done
 
       - name: Upload release assets
+        if: steps.semrel.outputs.new-release-published == 'true'
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ steps.semrel.outputs.new-release-version }}
           files: dist/**/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
