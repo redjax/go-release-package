@@ -33,10 +33,11 @@ jobs:
       - name: Run tests
         run: go test ./...
 
-      - name: Run semantic release
-        uses: codfish/semantic-release-action@v2.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run go-semantic-release
+        uses: go-semantic-release/action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          release-branches: release
 
       - name: Prepare dist directory
         run: mkdir -p dist
