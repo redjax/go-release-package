@@ -2,6 +2,12 @@
 
 An example repository the demonstrates versioning & releasing Go packages.
 
+## Setup
+
+This repository expects a branch named `release` or `release/**` to exist. The pipeline runs on any merge from `main` into a `release` or `release/**` branch.
+
+Use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) in your commit messages to trigger a release.
+
 ## Usage
 
 The [release Github Action](./.github/workflows/release.yml) will trigger on any pull request into the `release` branch. The pipeline will use the commit history to determine the release type.
