@@ -18,6 +18,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Configure git for CI
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Cache Go modules
         uses: actions/cache@v3
         with:
@@ -39,11 +44,17 @@ jobs:
       - name: Run tests
         run: go test ./...
 
-      - name: Create .semrelrc config file
+      - name: Create .semrelrc config
         run: |
           echo '{
             "branches": ["release"],
-            "allow-initial-development-versions": true
+            "allow-initial-development-versions": true,
+            "plugins": [
+              "@semantic-release/commit-analyzer",
+              "@semantic-release/release-notes-generator",
+              "@semantic-release/changelog",
+              "@semantic-release/github"
+            ]
           }' > .semrelrc
 
       - name: Run semantic release
@@ -51,6 +62,7 @@ jobs:
         uses: go-semantic-release/action@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          config: .semrelrc
 
       - name: Show version
         if: steps.semrel.outputs.new-release-published == 'true'
@@ -70,7 +82,7 @@ jobs:
             mkdir -p "$out_dir"
             output="${out_dir}/yourprogram"
             [ "$os" = "windows" ] && output="${output}.exe"
-            GOOS=$os GOARCH=$arch CGO_ENABLED=0 go build -o "$output" ./...
+            GOOS=$os GOARCH=$arch CGO_ENABLED=0 go build -ldflags "-X main.version=$version" -o "$output" ./...
           done
 
       - name: Upload release assets
