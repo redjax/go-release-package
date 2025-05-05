@@ -62,7 +62,9 @@ jobs:
         uses: go-semantic-release/action@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          config: .semrelrc
+          changelog-file: .generated-go-semantic-release-changelog.md
+          allow-initial-development-versions: true
+          force-bump-patch-version: true
 
       - name: Show version
         if: steps.semrel.outputs.new-release-published == 'true'
