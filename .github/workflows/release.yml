@@ -34,7 +34,7 @@ jobs:
 
       - name: Create .semrelrc config file
         run: |
-          echo '{ "branch": "release" }' > .semrelrc
+          echo '{ "allow-initial-development-versions": true, "branch": "release" }' > .semrelrc
 
       - name: Run go-semantic-release
         uses: go-semantic-release/action@v1
