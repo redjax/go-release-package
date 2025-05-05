@@ -48,13 +48,7 @@ jobs:
         run: |
           echo '{
             "branches": ["release"],
-            "allow-initial-development-versions": true,
-            "plugins": [
-              "@semantic-release/commit-analyzer",
-              "@semantic-release/release-notes-generator",
-              "@semantic-release/changelog",
-              "@semantic-release/github"
-            ]
+            "allow-initial-development-versions": true
           }' > .semrelrc
 
       - name: Run semantic release
