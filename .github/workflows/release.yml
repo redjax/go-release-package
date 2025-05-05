@@ -36,7 +36,7 @@ jobs:
         uses: codfish/semantic-release-action@v2.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SEMREL_BRANCHES: 'release'
+          SEMREL_BRANCHES: '["release"]'
 
       - name: Build for multiple platforms
         run: |
