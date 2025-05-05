@@ -1,0 +1,58 @@
+name: Automated Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Install go-semantic-release
+        run: |
+          go install github.com/go-semantic-release/go-semantic-release@latest
+
+      - name: Run semantic release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          go-semantic-release release
+
+      - name: Build binaries
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Build for multiple platforms
+        run: |
+          platforms=(
+            "linux/amd64"
+            "linux/arm64"
+            "darwin/amd64"
+            "darwin/arm64"
+            "windows/amd64"
+          )
+          for platform in "${platforms[@]}"; do
+            os=${platform%/*}
+            arch=${platform#*/}
+            output="dist/${os}-${arch}/yourprogram"
+            if [ "$os" = "windows" ]; then
+              output="${output}.exe"
+            fi
+            env GOOS=$os GOARCH=$arch CGO_ENABLED=0 go build -o $output ./...
+          done
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
